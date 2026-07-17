@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     这是你人生中第一个亲手写的网页！
+     每一行都有中文注释，边看边学 ☕
+     ============================================================ -->
+
+<html lang="zh-CN">   <!-- lang="zh-CN" 告诉浏览器这是简体中文页面 -->
+
+<!-- ========== HEAD（头部）：放给浏览器看的配置信息 ========== -->
+<head>
+    <!-- 字符编码：让页面正确显示中文，没有这行就会乱码 -->
+    <meta charset="UTF-8">
+
+    <!-- 页面在手机上也能正常缩放显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 浏览器标签栏上显示的标题 -->
+    <title>斑点狗逻辑熊熊猫的第一个网页</title>
+
+    <!--
+    ═══════════════════════════════════════════════
+    🎨 CSS 样式区 —— 给 HTML 穿上衣服
+    所有「好不好看」的东西都在这里
+    ═══════════════════════════════════════════════
+    -->
+    <style>
+        /* ---------- 全局重置：让所有元素的外边距和内边距归零 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ---------- 页面整体背景 ---------- */
+        /* body 就是整个页面的身体 */
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            /* 用一套从网上渐变背景取色工具生成的渐变背景 */
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;              /* 至少占满整个屏幕高度 */
+            display: flex;                   /* 用 flex 弹性布局居中内容 */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ---------- 主卡片：整个内容的白色容器 ---------- */
+        .card {
+            background: rgba(255, 255, 255, 0.95); /* 半透明白色背景 */
+            border-radius: 20px;             /* 圆角 */
+            padding: 40px;                   /* 内部间距 */
+            max-width: 700px;                /* 最大宽度，太宽了不好看 */
+            width: 100%;                     /* 在小屏幕上自动缩窄 */
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); /* 阴影，让卡片有悬浮感 */
+            text-align: center;              /* 文字居中 */
+        }
+
+        /* ---------- 头像（纯CSS绘制，不需要外网图片） ---------- */
+        .avatar-wrapper {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;              /* 圆形 */
+            border: 4px solid #6c63ff;       /* 紫色边框 */
+            margin: 0 auto 20px auto;        /* 居中 */
+            background: linear-gradient(135deg, #6c63ff, #e040fb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: 700;
+            user-select: none;               /* 防止选中文字 */
+        }
+
+        /* ---------- 标题 ---------- */
+        h1 {
+            font-size: 32px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        /* ---------- 个人简介 ---------- */
+        .subtitle {
+            font-size: 18px;
+            color: #6c63ff;                  /* 紫色强调 */
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .bio {
+            color: #555;
+            line-height: 1.8;                /* 行高，让文字不挤在一起 */
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        /* ---------- 技能标签 ---------- */
+        .skills {
+            display: flex;                   /* flex 横排排列 */
+            flex-wrap: wrap;                 /* 放不下就换行 */
+            justify-content: center;
+            gap: 10px;                       /* 标签之间的间距 */
+            margin-bottom: 30px;
+        }
+
+        .skill-tag {
+            background: #f0f0ff;
+            color: #6c63ff;
+            padding: 6px 18px;
+            border-radius: 20px;             /* 胶囊形标签 */
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #d0cfff;
+        }
+
+        /* ---------- 社交链接按钮 ---------- */
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .links a {
+            text-decoration: none;           /* 去掉下划线 */
+            color: white;
+            background: #6c63ff;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;       /* 鼠标悬停的过渡动画 */
+        }
+
+        /* 鼠标悬停时的效果 */
+        .links a:hover {
+            background: #4d44db;
+            transform: translateY(-2px);     /* 向上飘 2 像素 */
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        /* ---------- 计数器区域（JS 互动区） ---------- */
+        .counter-section {
+            margin-top: 20px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;      /* 上面一条分隔线 */
+        }
+
+        .counter-section p {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .counter-section .count {
+            font-size: 48px;
+            font-weight: 800;
+            color: #6c63ff;
+            display: block;
+            margin: 10px 0;
+        }
+
+        /* ---------- 按钮样式 ---------- */
+        .btn {
+            background: #6c63ff;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;                 /* 鼠标变成小手 */
+            transition: all 0.3s ease;
+            margin: 0 6px;
+        }
+
+        .btn:hover {
+            background: #4d44db;
+            transform: scale(1.05);          /* 稍微放大一点 */
+        }
+
+        /* ---------- 页脚 ---------- */
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        /* ---------- 提示框 ---------- */
+        .tip-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .tip-box strong {
+            color: #533f03;
+        }
+    </style>
+</head>
+
+<!-- ========== BODY（身体）：页面上能看到的所有内容 ========== -->
+<body>
+
+    <!-- ═══ 主卡片 container ═══ -->
+    <div class="card">
+
+        <!-- 🖼 头像（纯CSS绘制，不需要外网图片） -->
+        <div class="avatar-wrapper">👤</div>
+
+        <!-- 📛 名字 -->
+        <h1>斑点狗逻辑熊熊猫的第一个网页</h1>
+
+        <!-- 🏷 一句话介绍 -->
+        <p class="subtitle">🎬 数字媒体艺术 · 新手学习中</p>
+
+        <!-- 📝 个人简介 -->
+        <p class="bio">
+        我是一个高三刚毕业的学生，即将读 <strong>数字媒体艺术</strong> 专业。<br>
+        这是我亲手写的第一个网页 🎉<br>
+        以后会在这里放我的作品 —— 视频、动画、设计……敬请期待！
+        </p>
+
+        <!-- 🏷️ 技能标签区域 -->
+        <div class="skills">
+            <span class="skill-tag">🎥 视频剪辑</span>
+            <span class="skill-tag">🎨 设计</span>
+            <span class="skill-tag">📷 摄影</span>
+            <span class="skill-tag">🌐 HTML 学习中</span>
+            <span class="skill-tag">📚 英语学习中</span>
+        </div>
+
+        <!-- 🔗 按钮链接 -->
+        <div class="links">
+            <a href="https://space.bilibili.com/3546576244968321" target="_blank">B站关注我</a>
+            <a href="https://github.com" target="_blank">GitHub</a>
+            <!-- target="_blank" 表示在新标签页打开 -->
+        </div>
+
+        <!-- ═══ JS 互动区域 ═══ -->
+        <div class="counter-section">
+            <p>👇 点击按钮试试</p>
+            <!-- 这个数字会被 JavaScript 更新 -->
+            <span class="count" id="counterDisplay">0</span>
+
+            <!-- onclick 是 HTML 里最简单的绑定点击事件的方式 -->
+            <button class="btn" onclick="increase()">➕ 加一</button>
+            <button class="btn" onclick="resetCount()">🔄 归零</button>
+        </div>
+
+        <!-- 💡 学习小提示 -->
+        <div class="tip-box">
+            <strong>💡 学习提示：</strong><br>
+            📌 右键页面 → <strong>检查</strong> 可以看代码（开发者工具）<br>
+            📌 这个页面是用 <strong>HTML</strong>（结构）+ <strong>CSS</strong>（样式）+ <strong>JavaScript</strong>（互动）写的<br>
+            📌 每一行代码都有中文注释，打开看看 👀
+        </div>
+
+        <!-- 📅 页脚 -->
+        <p class="footer">
+            ⚡ 我的第一个网页 · 2026年7月
+        </p>
+    </div>
+
+    <!--
+    ═══════════════════════════════════════════════
+    🚀 JavaScript 区 —— 让页面动起来
+    所有「点一下会怎样」的东西都在这里
+    ═══════════════════════════════════════════════
+    -->
+    <script>
+        // ============================================================
+        // 🚀 JavaScript —— 计数器
+        //
+        // 工作原理：
+        //   1. 优先从云端 API 获取最新数字（所有人共享）
+        //   2. 同时存一份在本地（localStorage），刷新不丢
+        //   3. 云端连不上就用本地数字，不影响使用
+        // ============================================================
+
+        const counterEl = document.getElementById('counterDisplay');
+
+        // API 地址（相对于当前网站）
+        const API_URL = window.location.origin + '/api/counter';
+
+        // 本地存储
+        function getLocalCount() {
+            const saved = localStorage.getItem('page_counter');
+            return saved ? parseInt(saved) : 0;
+        }
+        function saveLocalCount(value) {
+            localStorage.setItem('page_counter', value.toString());
+            counterEl.textContent = value;
+        }
+
+        // 从云端读取
+        async function loadCount() {
+            counterEl.textContent = getLocalCount();
+            try {
+                const resp = await fetch(API_URL);
+                const data = await resp.json();
+                saveLocalCount(data.count);
+            } catch (e) {
+                console.log('用本地数字');
+            }
+        }
+
+        // 加一
+        async function increase() {
+            const localPlus = getLocalCount() + 1;
+            saveLocalCount(localPlus);
+            try {
+                const resp = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'increment' })
+                });
+                const data = await resp.json();
+                saveLocalCount(data.count);
+            } catch (e) {
+                console.log('已本地加一');
+            }
+        }
+
+        // 归零
+        async function resetCount() {
+            saveLocalCount(0);
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+            } catch (e) {
+                console.log('已本地归零');
+            }
+        }
+
+        // 启动！
+        loadCount();
+    </script>
+
+</body>
+</html>
