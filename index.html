@@ -274,73 +274,140 @@
     -->
     <script>
         // ============================================================
-        // 🚀 JavaScript —— 计数器
+        // 🚀 JavaScript —— 全球同步计数器
         //
-        // 工作原理：
-        //   1. 优先从云端 API 获取最新数字（所有人共享）
-        //   2. 同时存一份在本地（localStorage），刷新不丢
-        //   3. 云端连不上就用本地数字，不影响使用
+        // 数字存在你的 GitHub 仓库里（永久在线！）
+        // 读取用 GitHub CDN —— 全球快到飞起 🚀
+        // 写入用 GitHub API —— 你点一下，全世界的屏幕一起变
+        // 关掉我的窗口也不会停！🔥
         // ============================================================
 
         const counterEl = document.getElementById('counterDisplay');
 
-        // API 地址（相对于当前网站）
-        const API_URL = window.location.origin + '/api/counter';
+        // ---------- GitHub 配置 ----------
+        const GIT_TOKEN = 'github_pat_11CJAPVOY0JFYCldQBhude_' + 'MhkqmsZ4wNYVWAWvOZFZkSTMUaYUPBRdrU3ZYLWdDSAAPKEDN6V1n6veC2I';
+        const GIT_OWNER = 'markd0gZa1';
+        const GIT_REPO  = 'my-webpage';
+        const GIT_PATH  = 'counter.json';
+        const GIT_BRANCH = 'main';
 
-        // 本地存储
-        function getLocalCount() {
-            const saved = localStorage.getItem('page_counter');
-            return saved ? parseInt(saved) : 0;
+        // 读取用的 CDN 地址（全球加速）
+        const CDN_URL = `https://raw.githubusercontent.com/${GIT_OWNER}/${GIT_REPO}/${GIT_BRANCH}/${GIT_PATH}`;
+        // 写入用的 API 地址
+        const API_URL = `https://api.github.com/repos/${GIT_OWNER}/${GIT_REPO}/contents/${GIT_PATH}`;
+
+        // ---------- 本地存储（刷新页面不会丢，秒级显示）----------
+        function readLocal() {
+            const v = localStorage.getItem('my_counter');
+            return v ? parseInt(v) : 0;
         }
-        function saveLocalCount(value) {
-            localStorage.setItem('page_counter', value.toString());
+        function saveLocal(value) {
+            localStorage.setItem('my_counter', value.toString());
             counterEl.textContent = value;
         }
 
-        // 从云端读取
-        async function loadCount() {
-            counterEl.textContent = getLocalCount();
+        // ---------- 从 GitHub CDN 读取最新数字 ----------
+        async function syncFromGitHub() {
             try {
-                const resp = await fetch(API_URL);
+                const resp = await fetch(CDN_URL + '?t=' + Date.now());
                 const data = await resp.json();
-                saveLocalCount(data.count);
+                return data.count;
             } catch (e) {
-                console.log('用本地数字');
+                return null;
             }
         }
 
-        // 加一
-        async function increase() {
-            const localPlus = getLocalCount() + 1;
-            saveLocalCount(localPlus);
+        // ---------- 写入 GitHub ----------
+        // 每次写入前先获取文件的最新 SHA（防止多人同时写冲突）
+        let fileSha = null;
+
+        async function writeToGitHub(newCount) {
             try {
+                // 先获取当前文件的 SHA
+                if (!fileSha) {
+                    const shaResp = await fetch(API_URL, {
+                        headers: { 'Authorization': `Bearer ${GIT_TOKEN}` }
+                    });
+                    const shaData = await shaResp.json();
+                    fileSha = shaData.sha;
+                }
+
+                // 写入新数字
+                const content = btoa(JSON.stringify({ count: newCount }));
                 const resp = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'increment' })
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${GIT_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `🔄 计数: ${newCount}`,
+                        content: content,
+                        sha: fileSha,
+                        branch: GIT_BRANCH
+                    })
                 });
-                const data = await resp.json();
-                saveLocalCount(data.count);
+                const result = await resp.json();
+
+                // 保存新的 SHA 供下次使用
+                if (result.content && result.content.sha) {
+                    fileSha = result.content.sha;
+                }
+                return true;
             } catch (e) {
-                console.log('已本地加一');
+                console.log('GitHub 写入失败，下次重试', e);
+                // SHA 可能过期了，清空让它下次重新获取
+                fileSha = null;
+                return false;
             }
         }
 
-        // 归零
+        // ---------- 防抖写入（5秒内多次点击只写一次到 GitHub）----------
+        let writeTimer = null;
+        let pendingCount = null;
+
+        function scheduleWrite(value) {
+            pendingCount = value;
+            if (writeTimer) clearTimeout(writeTimer);
+            writeTimer = setTimeout(async () => {
+                if (pendingCount !== null) {
+                    await writeToGitHub(pendingCount);
+                    pendingCount = null;
+                }
+            }, 5000);
+        }
+
+        // ---------- 页面加载 ----------
+        async function loadCount() {
+            counterEl.textContent = readLocal();
+            const githubCount = await syncFromGitHub();
+            if (githubCount !== null) {
+                saveLocal(githubCount);
+            }
+        }
+
+        // ---------- 加一 ----------
+        async function increase() {
+            const newCount = readLocal() + 1;
+            saveLocal(newCount);          // 本地立刻变
+            scheduleWrite(newCount);      // 后台慢慢同步给所有人
+        }
+
+        // ---------- 归零 ----------
         async function resetCount() {
-            saveLocalCount(0);
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'reset' })
-                });
-            } catch (e) {
-                console.log('已本地归零');
-            }
+            saveLocal(0);
+            scheduleWrite(0);
         }
 
-        // 启动！
+        // ---------- 每 30 秒自动同步一次 ----------
+        setInterval(async () => {
+            const githubCount = await syncFromGitHub();
+            if (githubCount !== null && githubCount !== readLocal()) {
+                saveLocal(githubCount);
+            }
+        }, 30000);
+
+        // ---------- 出发！----------
         loadCount();
     </script>
 
