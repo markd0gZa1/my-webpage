@@ -159,6 +159,31 @@
             margin: 10px 0;
         }
 
+        /* ---------- 来访统计（顶部那行） ---------- */
+        .visitor-row {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .visitor-row .label {
+            font-size: 13px;
+            color: #999;
+        }
+        .visitor-row .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #6c63ff;
+        }
+
+        /* ---------- 分割线 ---------- */
+        .counter-divider {
+            height: 1px;
+            background: #eee;
+            margin: 18px 0 14px;
+        }
+
         /* ---------- 按钮样式 ---------- */
         .btn {
             background: #6c63ff;
@@ -241,9 +266,16 @@
             <!-- target="_blank" 表示在新标签页打开 -->
         </div>
 
-        <!-- ═══ JS 互动区域 ═══ -->
+        <!-- ═══ 访问统计 + 互动区 ═══ -->
         <div class="counter-section">
-            <p>👇 点一下试试</p>
+            <div class="visitor-row">
+                <span class="label">🌐 总访问量</span>
+                <span class="num" id="visitorCount">···</span>
+            </div>
+
+            <div class="counter-divider"></div>
+
+            <p style="color:#888;font-size:14px;margin-bottom:12px;">👇 点一下试试（你自己的计数器）</p>
             <span class="count" id="counterDisplay">0</span>
             <button class="btn" onclick="increase()">➕ 加一</button>
             <button class="btn" onclick="resetCount()">🔄 归零</button>
@@ -271,16 +303,33 @@
     -->
     <script>
         // ============================================================
-        // 📦 计数器 —— 数字存你浏览器里，关掉再打开还在
-        //
-        // 每台电脑/手机各记各的，互不影响
-        // 如果你以后想做一个"全球同步"的版本
-        // 可以加个后端（比如 Vercel KV / Firebase），这里留了接口位置
+        // 🌐 来访统计 —— 用 CountAPI（免费，无需注册）
+        // 每个浏览器会话只计一次，刷新页面不重复加
+        // ============================================================
+
+        const visitorEl = document.getElementById('visitorCount');
+
+        // 先显示当前总数
+        fetch('https://api.countapi.xyz/get/markd0gza1.github.io/my-webpage/visits')
+            .then(r => r.json())
+            .then(d => { visitorEl.textContent = d.value.toLocaleString(); })
+            .catch(() => { visitorEl.textContent = '?' });
+
+        // 本次会话还没计过？计一次
+        if (!sessionStorage.getItem('_visited')) {
+            fetch('https://api.countapi.xyz/hit/markd0gza1.github.io/my-webpage/visits')
+                .then(r => r.json())
+                .then(d => { visitorEl.textContent = d.value.toLocaleString(); })
+                .catch(() => {});
+            sessionStorage.setItem('_visited', '1');
+        }
+
+        // ============================================================
+        // 📦 个人手点计数器 —— 存浏览器本地，各设备独立
         // ============================================================
 
         const counterEl = document.getElementById('counterDisplay');
 
-        // ---------- 读/写浏览器本地存储 ----------
         function getCount() {
             const v = localStorage.getItem('my_counter');
             return v ? parseInt(v) : 0;
@@ -291,17 +340,14 @@
             counterEl.textContent = value;
         }
 
-        // ---------- 加一 ----------
         function increase() {
             setCount(getCount() + 1);
         }
 
-        // ---------- 归零 ----------
         function resetCount() {
             setCount(0);
         }
 
-        // ---------- 启动时显示之前存的数 ----------
         counterEl.textContent = getCount();
     </script>
 
