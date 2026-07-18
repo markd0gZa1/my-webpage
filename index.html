@@ -270,12 +270,12 @@
         <div class="counter-section">
             <div class="visitor-row">
                 <span class="label">🌐 总访问量</span>
-                <span class="num" id="visitorCount">···</span>
+                <span class="num" id="vercount_value_site_pv">···</span>
             </div>
 
             <div class="counter-divider"></div>
 
-            <p style="color:#888;font-size:14px;margin-bottom:12px;">👇 点一下试试（你自己的计数器）</p>
+            <p>👇 你自己的计数器</p>
             <span class="count" id="counterDisplay">0</span>
             <button class="btn" onclick="increase()">➕ 加一</button>
             <button class="btn" onclick="resetCount()">🔄 归零</button>
@@ -295,60 +295,25 @@
         </p>
     </div>
 
-    <!--
-    ═══════════════════════════════════════════════
-    🚀 JavaScript 区 —— 让页面动起来
-    所有「点一下会怎样」的东西都在这里
-    ═══════════════════════════════════════════════
-    -->
+    <!-- 🌐 来访统计（Vercount —— 免费开源，自动计数） -->
+    <script defer src="https://events.vercount.one/js"></script>
+
     <script>
-        // ============================================================
-        // 🌐 来访统计 —— 用 CountAPI（免费，无需注册）
-        // 每个浏览器会话只计一次，刷新页面不重复加
-        // ============================================================
-
-        const visitorEl = document.getElementById('visitorCount');
-
-        // 先显示当前总数
-        fetch('https://api.countapi.xyz/get/markd0gza1.github.io/my-webpage/visits')
-            .then(r => r.json())
-            .then(d => { visitorEl.textContent = d.value.toLocaleString(); })
-            .catch(() => { visitorEl.textContent = '?' });
-
-        // 本次会话还没计过？计一次
-        if (!sessionStorage.getItem('_visited')) {
-            fetch('https://api.countapi.xyz/hit/markd0gza1.github.io/my-webpage/visits')
-                .then(r => r.json())
-                .then(d => { visitorEl.textContent = d.value.toLocaleString(); })
-                .catch(() => {});
-            sessionStorage.setItem('_visited', '1');
-        }
-
-        // ============================================================
-        // 📦 个人手点计数器 —— 存浏览器本地，各设备独立
-        // ============================================================
-
-        const counterEl = document.getElementById('counterDisplay');
-
-        function getCount() {
-            const v = localStorage.getItem('my_counter');
-            return v ? parseInt(v) : 0;
-        }
-
-        function setCount(value) {
-            localStorage.setItem('my_counter', String(value));
-            counterEl.textContent = value;
-        }
+        // 📦 个人手点计数器 —— 存浏览器本地
+        const el = document.getElementById('counterDisplay');
+        const n = localStorage.getItem('my_counter');
+        el.textContent = n ? parseInt(n) : 0;
 
         function increase() {
-            setCount(getCount() + 1);
+            const v = parseInt(el.textContent) + 1;
+            localStorage.setItem('my_counter', String(v));
+            el.textContent = v;
         }
 
         function resetCount() {
-            setCount(0);
+            localStorage.setItem('my_counter', '0');
+            el.textContent = 0;
         }
-
-        counterEl.textContent = getCount();
     </script>
 
 </body>
